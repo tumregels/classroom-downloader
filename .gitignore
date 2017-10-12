@@ -1,0 +1,10 @@
+downloads/
+.vscode/
+other/
+client_secret.json
+log.txt
+submissions.txt
+
+.DS_Store
+.idea/
+*.pyc
