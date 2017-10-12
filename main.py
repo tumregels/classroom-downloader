@@ -96,7 +96,7 @@ def download_drivefile(file_id, file_name):
 def download_attachments(attachments, full_name, email):
     for attachment in attachments:
         if 'driveFile' in attachment:
-            file_id = attachment.get('driveFile').get('id')  # [0].get('driveFile').get('id')
+            file_id = attachment.get('driveFile').get('id')
 
             file_name = attachment.get('driveFile').get('title')
             file_ext = os.path.splitext(file_name)[1]
@@ -125,9 +125,6 @@ def download_assignment(courseId, courseWorkId, spath='downloads'):
             userProfile = classroom_service.userProfiles().get(userId=userId).execute()
 
             email = userProfile.get('emailAddress').split('@')[0]
-
-            if email == 'aleqsandr.shah.s':
-                p('here')
 
             full_name = userProfile.get('name').get('fullName')  # .replace(' ', '-')
             line = full_name + ' ( ' + email + '@tumo.org ) - \n'
@@ -209,4 +206,4 @@ if __name__ == '__main__':
     # show_courses()
     # show_assignments(courseId='5088423307')
     # prog III SK
-    download_assignment(courseId='5088423307', courseWorkId='7944623829', spath='final-sk')
+    download_assignment(courseId='5088423307', courseWorkId='7944623829')

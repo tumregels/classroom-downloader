@@ -45,7 +45,6 @@ def extract_all_files(directory):
                 file_path = os.path.join(root, file)
                 p('---------------')
                 p('Unzipping:', file_path)
-                p(root)
                 try:
                     if file.endswith(".zip"):
                         unzip(root)
