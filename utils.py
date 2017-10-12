@@ -21,10 +21,10 @@ def find_all_html_files(directory):
 def unzip(xpath):
     for file_zip in glob.glob('{}/*.zip'.format(xpath)):
         zip_ref = zipfile.ZipFile(file_zip, 'r')
-        p(zip_ref.namelist())
+        # p(*zip_ref.namelist())
         for libitem in zip_ref.namelist():
-            if not libitem.startswith('__MACOSX/'):
-                zip_ref.extract(libitem)
+            if not (libitem.startswith('__MACOSX/') or '.git/' in libitem or 'node_modules/' in libitem):
+                zip_ref.extract(libitem, path=xpath)
         # zip_ref.extractall(new_path)
         zip_ref.close()
 

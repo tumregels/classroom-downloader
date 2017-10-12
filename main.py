@@ -69,13 +69,15 @@ def get_credentials():
 def download_drivefile(file_id, file_name):
     if os.path.isfile(file_name): # continue if exists
        return
-    sleep(randint(10, 20))  # avoid google api limit
 
     if file_name.lower().endswith(('.zip','.rar','.7z')):
         request = drive_service.files().get_media(fileId=file_id)
     else: # download as pdf
         request = drive_service.files().export_media(fileId=file_id, mimeType='application/pdf')
         file_name = file_name + '.pdf'
+        if os.path.isfile(file_name): return # continue if exists
+
+    sleep(randint(10, 20))  # avoid google api limit
 
     fh = io.FileIO(file_name, mode='wb')
     downloader = MediaIoBaseDownload(fh, request)
