@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import io
+import textwrap
 from random import randint
 from time import sleep
 
@@ -12,6 +13,7 @@ from apiclient.http import MediaIoBaseDownload
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+from tabulate import tabulate
 
 from utils import *
 
@@ -67,15 +69,15 @@ def get_credentials():
 
 
 def download_drivefile(file_id, file_name):
-    if os.path.isfile(file_name): # continue if exists
-       return
+    if os.path.isfile(file_name):  # continue if exists
+        return
 
-    if file_name.lower().endswith(('.zip','.rar','.7z')):
+    if file_name.lower().endswith(('.zip', '.rar', '.7z')):
         request = drive_service.files().get_media(fileId=file_id)
-    else: # download as pdf
+    else:  # download as pdf
         request = drive_service.files().export_media(fileId=file_id, mimeType='application/pdf')
         file_name = file_name + '.pdf'
-        if os.path.isfile(file_name): return # continue if exists
+        if os.path.isfile(file_name): return  # continue if exists
 
     sleep(randint(10, 20))  # avoid google api limit
 
@@ -146,7 +148,7 @@ def download_assignment(courseId, courseWorkId, spath='downloads'):
             sfile.write(line)
 
 
-def show_courses():
+def get_courses():
     courses = []
     page_token = None
 
@@ -157,29 +159,17 @@ def show_courses():
         page_token = response.get('nextPageToken', None)
         if not page_token:
             break
-
-    if not courses:
-        p('No courses found.')
-    else:
-        p('Courses:')
-        for course in courses:
-            p(u'{0} - ({1}) - {2} - {3}'.format(
-                course.get('name'),
-                course.get('id'),
-                course.get('description'),
-                course.get('title')
-            ))
     return courses
 
 
-def show_assignments(courseId):
+def get_course_works(course_id):
     course_works = []
     page_token = None
 
     response = classroom_service.courses().courseWork().list(
         pageToken=page_token,
         pageSize=100,
-        courseId=courseId).execute()
+        courseId=course_id).execute()
 
     while True:
         course_works.extend(response.get('courseWork', []))
@@ -187,16 +177,48 @@ def show_assignments(courseId):
         if not page_token:
             break
 
-    if not course_works:
-        p('No course works found.')
-    else:
-        p('CourseWorks:')
-        for cw in course_works:
-            p(u'{0} - ({1}) - {2}'.format(
-                cw.get('title'),
-                cw.get('id'),
-                cw.get('description'),
-            ))
+    return course_works
+
+
+def show_course_works(course_id, title=''):
+    course_works = get_course_works(course_id)
+    if not course_works: return
+
+    table_data = [
+        ['assignment ids for {} {}'.format(course_id, title), 'assignment title', 'assignment description']
+    ]
+    table_data[0][0] = textwrap.fill(table_data[0][0], width=45)
+
+    for cw in course_works:
+        table_data.append([
+            cw.get('id'),
+            textwrap.fill(cw.get('title', ''), width=45),
+            textwrap.fill(cw.get('description', ''), width=45)
+        ])
+
+    print(tabulate(table_data, headers="firstrow", tablefmt="simple"))
+
+
+def show_courses():
+    courses = get_courses()
+
+    table_data = [['course id', 'course name', 'course description', 'course title']]
+
+    for course in courses:
+        table_data.append(
+            [course.get('id'), course.get('name'), course.get('description'), course.get('title')]
+        )
+
+    print(tabulate(table_data, headers="firstrow", tablefmt="simple"))
+
+
+def show_all():
+    # show_courses()
+    courses = get_courses()
+    for course in courses:
+        show_course_works(course.get('id'), title=course.get('name', '') + ' ' + course.get('description', ''))
+        print()
+        sleep(randint(10, 20))  # avoid google api limit
 
 
 if __name__ == '__main__':
@@ -205,7 +227,6 @@ if __name__ == '__main__':
     classroom_service = discovery.build('classroom', 'v1', http=http, cache_discovery=False)
     drive_service = discovery.build('drive', 'v3', http=http, cache_discovery=False)
 
-    # show_courses()
-    # show_assignments(courseId='5088423307')
-    # prog III SK
-    download_assignment(courseId='5088423307', courseWorkId='7944623829')
+    show_courses()
+    # show_course_works(course_id='5088423307')
+    # download_assignment(courseId='5088423307', courseWorkId='7944623829') # prog III SK
