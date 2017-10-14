@@ -113,13 +113,13 @@ def download_attachments(attachments, full_name, email):
                 f.write(attachment['link']['url'] + '\n')
 
 
-def download_assignment(courseId, courseWorkId, spath='downloads'):
+def download_assignment(course_id, coursework_id, down_path='downloads'):
     studentSubmissions = classroom_service.courses().courseWork().studentSubmissions().list(
-        courseId=courseId,
-        courseWorkId=courseWorkId).execute()
+        courseId=course_id,
+        courseWorkId=coursework_id).execute()
 
-    if not os.path.exists(spath):
-        os.makedirs(spath)
+    if not os.path.exists(down_path):
+        os.makedirs(down_path)
 
     sub_list = []
 
@@ -133,7 +133,7 @@ def download_assignment(courseId, courseWorkId, spath='downloads'):
             full_name = userProfile.get('name').get('fullName')  # .replace(' ', '-')
             line = full_name + ' ( ' + email + '@tumo.org ) - \n'
             sub_list.append(line)
-            full_name = os.path.join(spath, full_name)
+            full_name = os.path.join(down_path, full_name)
             if not os.path.exists(full_name):
                 os.makedirs(full_name)
             p('--------------')
@@ -141,7 +141,7 @@ def download_assignment(courseId, courseWorkId, spath='downloads'):
             attachments = studentSubmission.get('assignmentSubmission').get('attachments')
             download_attachments(attachments, full_name, email)
 
-    extract_all_files(spath)
+    extract_all_files(down_path)
 
     with io.open('submissions.txt', 'w', encoding='utf-8') as sfile:
         for line in sorted(sub_list):
@@ -204,9 +204,9 @@ def show_courses():
 
     table_data = [['course id', 'course name', 'course description', 'course title']]
 
-    for course in courses:
+    for c in courses:
         table_data.append(
-            [course.get('id'), course.get('name'), course.get('description'), course.get('title')]
+            [c.get('id'), c.get('name'), c.get('description'), c.get('title')]
         )
 
     print(tabulate(table_data, headers="firstrow", tablefmt="simple"))
@@ -215,8 +215,8 @@ def show_courses():
 def show_all():
     # show_courses()
     courses = get_courses()
-    for course in courses:
-        show_course_works(course.get('id'), title=course.get('name', '') + ' ' + course.get('description', ''))
+    for c in courses:
+        show_course_works(c.get('id'), title=c.get('name', '') + ' ' + c.get('description', ''))
         print()
         sleep(randint(10, 20))  # avoid google api limit
 
@@ -227,6 +227,6 @@ if __name__ == '__main__':
     classroom_service = discovery.build('classroom', 'v1', http=http, cache_discovery=False)
     drive_service = discovery.build('drive', 'v3', http=http, cache_discovery=False)
 
-    show_courses()
+    # show_courses()
     # show_course_works(course_id='5088423307')
-    # download_assignment(courseId='5088423307', courseWorkId='7944623829') # prog III SK
+    download_assignment(course_id='5088423307', coursework_id='7944623829') # prog III SK
