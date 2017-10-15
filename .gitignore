@@ -1,6 +1,8 @@
 downloads/
+downloads-sk-sep-2017/
 .vscode/
 other/
+release/
 client_secret.json
 log.txt
 submissions.txt

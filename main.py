@@ -1,7 +1,6 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import io
-import textwrap
 from random import randint
 from time import sleep
 
@@ -13,9 +12,10 @@ from apiclient.http import MediaIoBaseDownload
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-from tabulate import tabulate
 
 from utils import *
+
+__version__ = "0.1.0"
 
 try:
     import argparse
@@ -109,14 +109,14 @@ def download_attachments(attachments, full_name, email):
             download_drivefile(file_id, file_name)
         elif 'link' in attachment:
             link_file = os.path.join(full_name, 'link.txt')
-            with open(link_file, 'a') as f:
+            with io.open(link_file, mode='ab') as f:
                 f.write(attachment['link']['url'] + '\n')
 
 
-def download_assignment(course_id, coursework_id, down_path='downloads'):
+def download_assignment(course_id, course_work_id, down_path='downloads'):
     studentSubmissions = classroom_service.courses().courseWork().studentSubmissions().list(
         courseId=course_id,
-        courseWorkId=coursework_id).execute()
+        courseWorkId=course_work_id).execute()
 
     if not os.path.exists(down_path):
         os.makedirs(down_path)
@@ -180,53 +180,73 @@ def get_course_works(course_id):
     return course_works
 
 
-def show_course_works(course_id, title=''):
+def cli():
+    from prompt_toolkit.contrib.completers import WordCompleter
+    from prompt_toolkit import prompt
+    from prompt_toolkit.shortcuts import confirm
+    from prompt_toolkit.styles import style_from_dict
+    from prompt_toolkit.token import Token
+
+    courses = get_courses()
+    show_courses(courses)
+
+    course_ids = [c.get('id') for c in courses]
+    course_meta = {c['id']: c.get('name', '') + ' ' + c.get('description', '') for c in courses}
+    course_completer = WordCompleter(
+        words=course_ids,
+        meta_dict=course_meta,
+        ignore_case=True)
+
+    course_id = prompt('Enter classroom id: ',
+                       completer=course_completer,
+                       get_bottom_toolbar_tokens=lambda cli: [(Token.Toolbar,
+                            'Press repeatedly TAB key to choose from the list of classrooms')],
+                       style=style_from_dict({Token.Toolbar: '#ffffff bg:#333333'}),
+                       display_completions_in_columns=True)
+
     course_works = get_course_works(course_id)
-    if not course_works: return
+    show_course_works(course_id, course_works)
+    course_work_ids = [cw['id'] for cw in course_works]
 
-    table_data = [
-        ['assignment ids for {} {}'.format(course_id, title), 'assignment title', 'assignment description']
-    ]
-    table_data[0][0] = textwrap.fill(table_data[0][0], width=45)
+    if not course_work_ids:
+        p(os.linesep + 'There are no assignments in this classroom. Exiting ...')
+        return
 
-    for cw in course_works:
-        table_data.append([
-            cw.get('id'),
-            textwrap.fill(cw.get('title', ''), width=45),
-            textwrap.fill(cw.get('description', ''), width=45)
-        ])
+    course_work_meta = {cw['id']: cw.get('title', '') + ' ' + cw.get('description', '') \
+                        for cw in course_works}
 
-    print(tabulate(table_data, headers="firstrow", tablefmt="simple"))
+    course_work_completer = WordCompleter(
+        words=course_work_ids,
+        meta_dict=course_work_meta,
+        ignore_case=True)
 
+    course_work_id = prompt('Enter assignment id: ',
+                            completer=course_work_completer,
+                            get_bottom_toolbar_tokens= lambda cli: [(Token.Toolbar,
+                                'Press repeatedly TAB key to choose from the list of assignments')],
+                            style=style_from_dict({Token.Toolbar: '#ffffff bg:#333333'}),
+                            display_completions_in_columns=True)
 
-def show_courses():
-    courses = get_courses()
+    download_message = 'You have chosen to download assignment "{}" from course "{}"'.format(
+        course_work_meta[course_work_id], course_meta[course_id])
+    download_message = os.linesep + textwrap.fill(download_message, width=45) + os.linesep
+    p(download_message.encode('utf-8'))
+    answer = confirm('Should we do that? (y/n) ')
 
-    table_data = [['course id', 'course name', 'course description', 'course title']]
-
-    for c in courses:
-        table_data.append(
-            [c.get('id'), c.get('name'), c.get('description'), c.get('title')]
-        )
-
-    print(tabulate(table_data, headers="firstrow", tablefmt="simple"))
-
-
-def show_all():
-    # show_courses()
-    courses = get_courses()
-    for c in courses:
-        show_course_works(c.get('id'), title=c.get('name', '') + ' ' + c.get('description', ''))
-        print()
-        sleep(randint(10, 20))  # avoid google api limit
+    if answer:
+        download_assignment(course_id, course_work_id)
 
 
 if __name__ == '__main__':
+    p("Executing classroom-downloader version {}".format(__version__))
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     classroom_service = discovery.build('classroom', 'v1', http=http, cache_discovery=False)
     drive_service = discovery.build('drive', 'v3', http=http, cache_discovery=False)
 
-    # show_courses()
-    # show_course_works(course_id='5088423307')
-    download_assignment(course_id='5088423307', coursework_id='7944623829') # prog III SK
+    cli()
+    # courses = get_courses()
+    # show_courses(courses)
+    # course_works = get_course_works(course_id='5088423307')
+    # show_course_works(course_id='5088423307', course_works)
+    # download_assignment(course_id='5088423307', course_work_id='7944623829') # prog III SK

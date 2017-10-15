@@ -1,9 +1,11 @@
-import os
 import glob
 import logging
+import os
+import textwrap
 import zipfile
 
 import rarfile
+from tabulate import tabulate
 
 
 def find_all_html_files(directory):
@@ -56,8 +58,46 @@ def extract_all_files(directory):
 
 def p(*args):
     """print and log at once"""
-    print(' '.join(args))
-    logger.info(' '.join(args))
+    if not args: return
+
+    message = ' '.join(args) if len(args) > 1 else args[0]
+    print(message.encode('utf-8'))
+    logger.info(message)
+
+
+def show_course_works(course_id, course_works, title=''):
+    if not course_works:
+        return
+
+    table_data = [[
+        textwrap.fill('assignment ids for {} {}'.format(course_id, title), width=45),
+        'assignment title',
+        'assignment description'
+    ]]
+
+    for cw in course_works:
+        table_data.append([
+            cw.get('id', ''),
+            textwrap.fill(cw.get('title', ''), width=45),
+            textwrap.fill(cw.get('description', ''), width=45)
+        ])
+
+    table = os.linesep + tabulate(table_data, headers="firstrow", tablefmt="simple") + os.linesep
+    p(table)
+
+
+def show_courses(courses):
+    table_data = [['course id', 'course name', 'course description', 'course title']]
+
+    for c in courses:
+        table_data.append([
+            c.get('id', ''),
+            textwrap.fill(c.get('name', ''), width=45),
+            textwrap.fill(c.get('description', ''), width=45),
+            textwrap.fill(c.get('title', ''), width=45)
+        ])
+
+    p(os.linesep + tabulate(table_data, headers="firstrow", tablefmt="simple") + os.linesep)
 
 
 logging.basicConfig(
@@ -74,6 +114,3 @@ console.setLevel(logging.DEBUG)
 # uncomment this line to print logs in console
 # logging.getLogger('').addHandler(console)
 logger = logging.getLogger(__name__)
-
-
-
