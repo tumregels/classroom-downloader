@@ -1,6 +1,9 @@
 from __future__ import print_function, unicode_literals
 
 import io
+import os
+import sys
+import textwrap
 from random import randint
 from time import sleep
 
@@ -13,7 +16,7 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-from utils import *
+from utils import logger, extract_all_files, show_courses, show_course_works, p
 
 __version__ = "0.1.0"
 
@@ -72,7 +75,7 @@ def download_drivefile(file_id, file_name):
     if os.path.isfile(file_name):  # continue if exists
         return
 
-    if file_name.lower().endswith(('.zip', '.rar', '.7z')):
+    if file_name.lower().endswith(('.zip', '.rar', '.7z', '.js', '.html')):
         request = drive_service.files().get_media(fileId=file_id)
     else:  # download as pdf
         request = drive_service.files().export_media(fileId=file_id, mimeType='application/pdf')
@@ -89,6 +92,12 @@ def download_drivefile(file_id, file_name):
         while done is False:
             status, done = downloader.next_chunk(num_retries=5)
             pbar.update(int(status.progress() * 100))
+    except KeyboardInterrupt:
+        fh.flush()  # cleanup download files
+        fh.close()
+        os.remove(file_name)
+        p('Download Interrupted')
+        raise KeyboardInterrupt
     except HttpError as e:
         io.open(file_name + '.log.txt', mode='wb').write(e.content)
         logger.error(e)
@@ -200,7 +209,7 @@ def cli():
     course_id = prompt('Enter classroom id: ',
                        completer=course_completer,
                        get_bottom_toolbar_tokens=lambda cli: [(Token.Toolbar,
-                            'Press repeatedly TAB key to choose from the list of classrooms')],
+                                                               'Press repeatedly TAB key to choose from the list of classrooms')],
                        style=style_from_dict({Token.Toolbar: '#ffffff bg:#333333'}),
                        display_completions_in_columns=True)
 
@@ -222,15 +231,15 @@ def cli():
 
     course_work_id = prompt('Enter assignment id: ',
                             completer=course_work_completer,
-                            get_bottom_toolbar_tokens= lambda cli: [(Token.Toolbar,
-                                'Press repeatedly TAB key to choose from the list of assignments')],
+                            get_bottom_toolbar_tokens=lambda cli: [(Token.Toolbar,
+                                                                    'Press repeatedly TAB key to choose from the list of assignments')],
                             style=style_from_dict({Token.Toolbar: '#ffffff bg:#333333'}),
                             display_completions_in_columns=True)
 
     download_message = 'You have chosen to download assignment "{}" from course "{}"'.format(
         course_work_meta[course_work_id], course_meta[course_id])
     download_message = os.linesep + textwrap.fill(download_message, width=45) + os.linesep
-    p(download_message.encode('utf-8'))
+    p(download_message)
     answer = confirm('Should we do that? (y/n) ')
 
     if answer:
@@ -244,9 +253,14 @@ if __name__ == '__main__':
     classroom_service = discovery.build('classroom', 'v1', http=http, cache_discovery=False)
     drive_service = discovery.build('drive', 'v3', http=http, cache_discovery=False)
 
-    cli()
-    # courses = get_courses()
-    # show_courses(courses)
-    # course_works = get_course_works(course_id='5088423307')
-    # show_course_works(course_id='5088423307', course_works)
-    # download_assignment(course_id='5088423307', course_work_id='7944623829') # prog III SK
+    try:
+        cli()
+    except KeyboardInterrupt:
+        p('Exiting classroom-downloader. Bye!')
+        sys.exit()
+
+        # courses = get_courses()
+        # show_courses(courses)
+        # course_works = get_course_works(course_id='5088423307')
+        # show_course_works(course_id='5088423307', course_works)
+        # download_assignment(course_id='5088423307', course_work_id='7944623829') # prog III SK
