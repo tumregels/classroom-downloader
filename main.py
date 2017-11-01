@@ -2,6 +2,7 @@ from __future__ import print_function, unicode_literals
 
 import io
 import os
+import os.path as op
 import sys
 import textwrap
 from random import randint
@@ -18,7 +19,7 @@ from oauth2client.file import Storage
 
 from utils import logger, extract_all_files, show_courses, show_course_works, p
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 try:
     import argparse
@@ -75,9 +76,9 @@ def download_drivefile(file_id, file_name):
     if os.path.isfile(file_name):  # continue if exists
         return
 
-    if file_name.lower().endswith(('.zip', '.rar', '.7z', '.js', '.html')):
+    try:
         request = drive_service.files().get_media(fileId=file_id)
-    else:  # download as pdf
+    except:  # download as pdf
         request = drive_service.files().export_media(fileId=file_id, mimeType='application/pdf')
         file_name = file_name + '.pdf'
         if os.path.isfile(file_name): return  # continue if exists
@@ -106,18 +107,19 @@ def download_drivefile(file_id, file_name):
         pbar.close()
 
 
-def download_attachments(attachments, full_name, email):
+def download_attachments(attachments, down_path, email, full_name):
     for attachment in attachments:
         if 'driveFile' in attachment:
             file_id = attachment.get('driveFile').get('id')
 
             file_name = attachment.get('driveFile').get('title')
-            file_ext = os.path.splitext(file_name)[1]
-            file_name = os.path.join(full_name, email + file_ext)
-            p(file_name)
-            download_drivefile(file_id, file_name)
+            # file_ext = os.path.splitext(file_name)[1]
+            # file_name = os.path.join(full_name, email + file_ext)
+            full_file_name = os.path.join(down_path, email, full_name, file_name)
+            p(full_file_name)
+            download_drivefile(file_id, full_file_name)
         elif 'link' in attachment:
-            link_file = os.path.join(full_name, 'link.txt')
+            link_file = os.path.join(down_path, email, full_name, 'link.txt')
             with io.open(link_file, mode='ab') as f:
                 f.write(attachment['link']['url'] + '\n')
 
@@ -142,13 +144,13 @@ def download_assignment(course_id, course_work_id, down_path='downloads'):
             full_name = userProfile.get('name').get('fullName')  # .replace(' ', '-')
             line = full_name + ' ( ' + email + '@tumo.org ) - \n'
             sub_list.append(line)
-            full_name = os.path.join(down_path, full_name)
-            if not os.path.exists(full_name):
-                os.makedirs(full_name)
+            # full_name = os.path.join(down_path, email)
+            if not op.exists(op.join(down_path, email, full_name)):
+                os.makedirs(op.join(down_path, email, full_name))
             p('--------------')
             p(userProfile.get('emailAddress'), userProfile.get('name').get('fullName'))
             attachments = studentSubmission.get('assignmentSubmission').get('attachments')
-            download_attachments(attachments, full_name, email)
+            download_attachments(attachments, down_path, email, full_name)
 
     extract_all_files(down_path)
 
