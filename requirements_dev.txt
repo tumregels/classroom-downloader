@@ -1,0 +1,2 @@
+PyInstaller==3.3
+prompt-toolkit==1.0.15
