@@ -249,6 +249,18 @@ def cli():
 
 
 if __name__ == '__main__':
+
+    if getattr(sys, 'frozen', False):
+        # we are running in a bundle
+        bundle_dir = sys._MEIPASS
+        cwd = op.dirname(sys.executable)
+    else:
+        # we are running in a normal Python environment
+        bundle_dir = op.dirname(op.abspath(__file__))
+        cwd = bundle_dir
+
+    os.chdir(cwd)
+
     p("Executing classroom-downloader version {}".format(__version__))
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
