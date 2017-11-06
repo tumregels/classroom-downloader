@@ -17,4 +17,5 @@ default:
 
 pyinstaller:
 	@$(ENV_BIN_DIR)/pyinstaller --onefile main.py --name classroom-downloader \
-	--distpath ./release/dist --workpath ./release/build --specpath ./release
+	--distpath ./release/dist --workpath ./release/build --specpath ./release \
+	--icon ./release/python.icns

@@ -264,3 +264,5 @@ if __name__ == '__main__':
         # course_works = get_course_works(course_id='5088423307')
         # show_course_works(course_id='5088423307', course_works)
         # download_assignment(course_id='5088423307', course_work_id='7944623829') # prog III SK
+
+    # extract_all_files('downloads-sk-sep-2017')

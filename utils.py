@@ -21,7 +21,7 @@ def find_all_html_files(directory):
 
 
 def unzip(xpath):
-    for file_zip in glob.glob('{}/*.zip'.format(xpath)):
+    for file_zip in glob.glob(u'{}/*.zip'.format(xpath)):
         zip_ref = zipfile.ZipFile(file_zip, 'r')
         # p(*zip_ref.namelist())
         for libitem in zip_ref.namelist():
@@ -32,7 +32,7 @@ def unzip(xpath):
 
 
 def unrar(xpath):
-    for file_rar in glob.glob('{}/*.rar'.format(xpath)):
+    for file_rar in glob.glob(u'{}/*.rar'.format(xpath)):
         # filepath = os.path.join(dpath, file_rar)
         with rarfile.RarFile(file_rar) as rar_ref:
             # for f in rar_ref.infolist():
