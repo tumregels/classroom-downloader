@@ -16,6 +16,6 @@ default:
 	@echo 'conda command: $(ENV_CONDA)'
 
 pyinstaller:
-	@$(ENV_BIN_DIR)/pyinstaller --onefile main.py --name crd012 --clean \
+	@$(ENV_BIN_DIR)/pyinstaller --onefile main.py --name crd013 --clean \
 	--distpath ./release/dist --workpath ./release/build --specpath ./release \
 	--icon ./release/python.icns

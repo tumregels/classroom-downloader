@@ -19,7 +19,7 @@ from oauth2client.file import Storage
 
 from utils import logger, extract_all_files, show_courses, show_course_works, p
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 try:
     import argparse
