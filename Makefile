@@ -1,7 +1,8 @@
-.PHONY: default test install uninstall clean realclean
+.PHONY: default mkdir_release install_packages create_actor_env activate deactivate generate_exe
 
+MKDIR_P := mkdir -p
 
-CONDA_HOME = $(HOME)/miniconda2
+CONDA_HOME = $(HOME)/miniconda3
 CONDA_BIN_DIR = $(CONDA_HOME)/bin
 
 ENV_NAME = classroom-downloader
@@ -15,7 +16,21 @@ default:
 	@echo 'python command: $(ENV_PYTHON)'
 	@echo 'conda command: $(ENV_CONDA)'
 
-pyinstaller:
-	@$(ENV_BIN_DIR)/pyinstaller --onefile main.py --name crd012 --clean \
-	--distpath ./release/dist --workpath ./release/build --specpath ./release \
-	--icon ./release/python.icns
+mkdir_release:
+	@${MKDIR_P} ./release
+
+install_packages:
+	$(ENV_BIN_DIR)/pip install -r requirements.txt
+
+create_actor_env:
+	$(CONDA_BIN_DIR)/conda create -n classroom-downloader python=2.7
+
+activate:
+	source activate classroom-downloader
+
+deactivate:
+	source deactivate
+
+generate_exe: mkdir_release
+	@$(ENV_BIN_DIR)/pyinstaller --onefile main.py --name crd --clean \
+	--distpath ./release/dist --workpath ./release/build --specpath ./release
