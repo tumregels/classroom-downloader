@@ -16,6 +16,11 @@ from apiclient.http import MediaIoBaseDownload
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+from prompt_toolkit import prompt
+from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.shortcuts import confirm
+from prompt_toolkit.styles import style_from_dict
+from prompt_toolkit.token import Token
 
 from utils import logger, extract_all_files, show_courses, show_course_works, p
 
@@ -192,11 +197,6 @@ def get_course_works(course_id):
 
 
 def cli():
-    from prompt_toolkit.contrib.completers import WordCompleter
-    from prompt_toolkit import prompt
-    from prompt_toolkit.shortcuts import confirm
-    from prompt_toolkit.styles import style_from_dict
-    from prompt_toolkit.token import Token
 
     courses = get_courses()
     show_courses(courses)
