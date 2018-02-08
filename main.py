@@ -19,7 +19,7 @@ from oauth2client.file import Storage
 
 from utils import logger, extract_all_files, show_courses, show_course_works, p
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 try:
     import argparse
@@ -278,3 +278,5 @@ if __name__ == '__main__':
         # course_works = get_course_works(course_id='5088423307')
         # show_course_works(course_id='5088423307', course_works)
         # download_assignment(course_id='5088423307', course_work_id='7944623829') # prog III SK
+
+    # extract_all_files('downloads-sk-sep-2017')
