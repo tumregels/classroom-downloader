@@ -12,8 +12,7 @@ classroom-downloader downloads Google Classroom assignments from Google Drive
 
 ## step 2
 
- Follow steps described [here](https://developers.google.com/classroom/quickstart/python#step_1_turn_on_the_api_name) under `step 1` and download `client_secret.json` into
- folder classroom-downloader
+ Follow steps described [here](https://developers.google.com/classroom/quickstart/python#step_1_turn_on_the_api_name) and download `client_secret.json` into `classroom-downloader`
 
 ## step 3
 
